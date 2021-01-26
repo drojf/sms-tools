@@ -28,7 +28,16 @@ ext_inc = os
 
 sourcefiles = ["utilFunctions.c", "cutilFunctions.pyx"]
 
+# Fix "LNK1181: cannot open input file 'm.lib'" error under MSVC
+# This removes the 'm' lib from all extensions under MSVC, as including it causes the build to fail
+class build_ext_remove_m_library(build_ext):
+   def build_extensions(self):
+        if 'msvc' in self.compiler.compiler_type:
+            for ext in self.extensions:
+               ext.libraries.remove('m')
+        build_ext.build_extensions(self)
+
 setup(
-    cmdclass = {'build_ext': build_ext},
+    cmdclass = {'build_ext': build_ext_remove_m_library},
     ext_modules = [Extension("utilFunctions_C",sourcefiles, libraries=['m'], include_dirs=py_inc + np_inc)]
   )
